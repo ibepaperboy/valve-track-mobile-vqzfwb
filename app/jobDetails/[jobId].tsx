@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -25,11 +25,7 @@ export default function JobDetailsScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedJob, setEditedJob] = useState<ValveJob | null>(null);
 
-  useEffect(() => {
-    loadJobData();
-  }, [jobId]);
-
-  const loadJobData = async () => {
+  const loadJobData = useCallback(async () => {
     try {
       const jobs = await loadJobs();
       const foundJob = jobs.find((j) => j.id === jobId);
@@ -44,7 +40,11 @@ export default function JobDetailsScreen() {
       console.error('Error loading job:', error);
       Alert.alert('Error', 'Failed to load job details');
     }
-  };
+  }, [jobId, router]);
+
+  useEffect(() => {
+    loadJobData();
+  }, [loadJobData]);
 
   const handleSave = async () => {
     if (!editedJob) return;
