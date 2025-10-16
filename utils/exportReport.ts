@@ -146,7 +146,7 @@ export const exportReport = async (
       mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 
-    // Get cache directory - accessing it directly from the module
+    // Get cache directory - use the property directly
     const cacheDir = FileSystem.cacheDirectory;
     if (!cacheDir) {
       throw new Error('Cache directory is not available');
@@ -156,12 +156,14 @@ export const exportReport = async (
     const fileUri = `${cacheDir}${fileName}`;
     
     if (options.format === 'csv') {
+      // Use string encoding option directly
       await FileSystem.writeAsStringAsync(fileUri, fileContent, {
-        encoding: FileSystem.EncodingType.UTF8,
+        encoding: 'utf8',
       });
     } else {
+      // Use base64 encoding option directly
       await FileSystem.writeAsStringAsync(fileUri, fileContent, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
     }
 
