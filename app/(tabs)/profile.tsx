@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, ActivityIndicator } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { loadJobs, clearJobs, saveJobs } from '@/utils/storage';
 import { generateMockJobs } from '@/utils/mockData';
 import { ValveJob } from '@/types/ValveJob';
+import { exportFullReport, exportQuickCSV } from '@/utils/exportReport';
 
 export default function ProfileScreen() {
   const [stats, setStats] = useState({
@@ -15,6 +16,7 @@ export default function ProfileScreen() {
     onHold: 0,
     completed: 0,
   });
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -32,6 +34,65 @@ export default function ProfileScreen() {
       });
     } catch (error) {
       console.error('Error loading stats:', error);
+    }
+  };
+
+  const handleExportReport = () => {
+    Alert.alert(
+      'Export Report',
+      'Choose the format for your valve repair report:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Excel (Full Report)',
+          onPress: async () => {
+            await handleExport('excel');
+          },
+        },
+        {
+          text: 'CSV (Quick Export)',
+          onPress: async () => {
+            await handleExport('csv');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleExport = async (format: 'excel' | 'csv') => {
+    try {
+      setIsExporting(true);
+      const jobs = await loadJobs();
+
+      if (jobs.length === 0) {
+        Alert.alert(
+          'No Data',
+          'There are no valve repair jobs to export. Please add some jobs first.'
+        );
+        return;
+      }
+
+      if (format === 'excel') {
+        await exportFullReport(jobs);
+        Alert.alert(
+          'Success',
+          `Exported ${jobs.length} jobs to Excel with statistics`
+        );
+      } else {
+        await exportQuickCSV(jobs);
+        Alert.alert(
+          'Success',
+          `Exported ${jobs.length} jobs to CSV`
+        );
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      Alert.alert(
+        'Export Failed',
+        'Failed to export the report. Please try again.'
+      );
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -146,6 +207,33 @@ export default function ProfileScreen() {
       </View>
 
       <View style={[commonStyles.card, styles.section]}>
+        <Text style={styles.sectionTitle}>Reports</Text>
+        
+        <Pressable 
+          style={styles.menuItem} 
+          onPress={handleExportReport}
+          disabled={isExporting}
+        >
+          <View style={[styles.menuIconContainer, { backgroundColor: colors.success + '20' }]}>
+            {isExporting ? (
+              <ActivityIndicator size="small" color={colors.success} />
+            ) : (
+              <IconSymbol name="arrow.down.doc.fill" size={24} color={colors.success} />
+            )}
+          </View>
+          <View style={styles.menuContent}>
+            <Text style={styles.menuTitle}>
+              {isExporting ? 'Exporting...' : 'Export Report'}
+            </Text>
+            <Text style={styles.menuDescription}>
+              Download jobs as Excel or CSV file
+            </Text>
+          </View>
+          <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+
+      <View style={[commonStyles.card, styles.section]}>
         <Text style={styles.sectionTitle}>Data Management</Text>
         
         <Pressable style={styles.menuItem} onPress={handleLoadSampleData}>
@@ -177,7 +265,8 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>About</Text>
         <Text style={styles.aboutText}>
           This app helps you track valve repairs in your maintenance shop. You can add jobs manually, 
-          update them individually, or upload an Excel file for bulk updates.
+          update them individually, or upload an Excel file for bulk updates. Export your data anytime 
+          to share reports or backup your information.
         </Text>
       </View>
 
