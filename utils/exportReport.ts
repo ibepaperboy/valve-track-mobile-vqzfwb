@@ -146,14 +146,14 @@ export const exportReport = async (
       mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 
-    // Get cache directory - use the property directly
-    const cacheDir = FileSystem.cacheDirectory;
-    if (!cacheDir) {
+    // Get cache directory - destructure from FileSystem to avoid namespace issues
+    const { cacheDirectory } = FileSystem;
+    if (!cacheDirectory) {
       throw new Error('Cache directory is not available');
     }
 
     // Save file to cache directory
-    const fileUri = `${cacheDir}${fileName}`;
+    const fileUri = `${cacheDirectory}${fileName}`;
     
     if (options.format === 'csv') {
       // Use string encoding option directly
