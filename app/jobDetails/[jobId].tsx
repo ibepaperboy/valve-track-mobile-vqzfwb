@@ -15,7 +15,7 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import StatusBadge from '@/components/StatusBadge';
 import PriorityBadge from '@/components/PriorityBadge';
-import { ValveJob, JobStatus } from '@/types/ValveJob';
+import { ValveJob, JobStatus, getColorFromPercent } from '@/types/ValveJob';
 import { loadJobs, saveJobs } from '@/utils/storage';
 
 export default function JobDetailsScreen() {
@@ -121,6 +121,8 @@ export default function JobDetailsScreen() {
     </Pressable>
   );
 
+  const percentOptions = [0, 10, 15, 20, 30, 40, 60, 65, 70, 80, 95, 100];
+
   if (!job || !editedJob) {
     return (
       <View style={[commonStyles.container, styles.loadingContainer]}>
@@ -128,6 +130,8 @@ export default function JobDetailsScreen() {
       </View>
     );
   }
+
+  const progressColor = getColorFromPercent(editedJob.percentComplete || 0);
 
   return (
     <>
@@ -171,31 +175,47 @@ export default function JobDetailsScreen() {
         </View>
 
         <View style={[commonStyles.card, styles.section]}>
-          <Text style={styles.label}>Status</Text>
-          {isEditing ? (
-            <View style={styles.statusButtons}>
-              {(['pending', 'in-progress', 'on-hold', 'completed'] as JobStatus[]).map((status) => (
+          <Text style={styles.label}>Status & Progress</Text>
+          <StatusBadge percentComplete={editedJob.percentComplete || 0} />
+          
+          {/* Progress Bar */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBarBackground}>
+              <View 
+                style={[
+                  styles.progressBarFill, 
+                  { 
+                    width: `${editedJob.percentComplete || 0}%`,
+                    backgroundColor: progressColor
+                  }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>{editedJob.percentComplete || 0}%</Text>
+          </View>
+
+          {isEditing && (
+            <View style={styles.percentButtons}>
+              {percentOptions.map((percent) => (
                 <Pressable
-                  key={status}
+                  key={percent}
                   style={[
-                    styles.statusButton,
-                    editedJob.status === status && styles.statusButtonActive,
+                    styles.percentButton,
+                    editedJob.percentComplete === percent && styles.percentButtonActive,
                   ]}
-                  onPress={() => setEditedJob({ ...editedJob, status })}
+                  onPress={() => setEditedJob({ ...editedJob, percentComplete: percent })}
                 >
                   <Text
                     style={[
-                      styles.statusButtonText,
-                      editedJob.status === status && styles.statusButtonTextActive,
+                      styles.percentButtonText,
+                      editedJob.percentComplete === percent && styles.percentButtonTextActive,
                     ]}
                   >
-                    {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+                    {percent}%
                   </Text>
                 </Pressable>
               ))}
             </View>
-          ) : (
-            <StatusBadge status={job.status} />
           )}
         </View>
 
@@ -329,30 +349,57 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  statusButtons: {
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  progressBarBackground: {
+    flex: 1,
+    height: 10,
+    backgroundColor: colors.border,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    minWidth: 45,
+    textAlign: 'right',
+  },
+  percentButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 4,
+    marginTop: 12,
   },
-  statusButton: {
-    paddingHorizontal: 16,
+  percentButton: {
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  statusButtonActive: {
+  percentButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  statusButtonText: {
-    fontSize: 14,
+  percentButtonText: {
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
   },
-  statusButtonTextActive: {
+  percentButtonTextActive: {
     color: '#ffffff',
   },
   priorityButtons: {

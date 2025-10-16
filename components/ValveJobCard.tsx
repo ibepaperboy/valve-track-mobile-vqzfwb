@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { ValveJob } from '@/types/ValveJob';
+import { ValveJob, getColorFromPercent } from '@/types/ValveJob';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import StatusBadge from './StatusBadge';
 import PriorityBadge from './PriorityBadge';
@@ -27,6 +27,8 @@ export default function ValveJobCard({ job }: ValveJobCardProps) {
     router.push(`/jobDetails/${job.id}`);
   };
 
+  const progressColor = getColorFromPercent(job.percentComplete || 0);
+
   return (
     <Pressable onPress={handlePress}>
       <View style={[commonStyles.card, styles.card]}>
@@ -43,7 +45,23 @@ export default function ValveJobCard({ job }: ValveJobCardProps) {
         </Text>
 
         <View style={styles.statusRow}>
-          <StatusBadge status={job.status} />
+          <StatusBadge percentComplete={job.percentComplete || 0} />
+        </View>
+
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBarBackground}>
+            <View 
+              style={[
+                styles.progressBarFill, 
+                { 
+                  width: `${job.percentComplete || 0}%`,
+                  backgroundColor: progressColor
+                }
+              ]} 
+            />
+          </View>
+          <Text style={styles.progressText}>{job.percentComplete || 0}%</Text>
         </View>
 
         {job.assignedTo && (
@@ -98,6 +116,30 @@ const styles = StyleSheet.create({
   },
   statusRow: {
     marginBottom: 12,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  progressBarBackground: {
+    flex: 1,
+    height: 8,
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.text,
+    minWidth: 40,
+    textAlign: 'right',
   },
   infoRow: {
     flexDirection: 'row',

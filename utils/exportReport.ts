@@ -2,7 +2,7 @@
 import * as XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { ValveJob } from '@/types/ValveJob';
+import { ValveJob, getStatusFromPercent } from '@/types/ValveJob';
 import { Platform } from 'react-native';
 
 export interface ExportOptions {
@@ -49,6 +49,7 @@ const generateStats = (jobs: ValveJob[]) => {
     highPriority: jobs.filter(j => j.priority === 'high').length,
     mediumPriority: jobs.filter(j => j.priority === 'medium').length,
     lowPriority: jobs.filter(j => j.priority === 'low').length,
+    averageProgress: Math.round(jobs.reduce((sum, j) => sum + (j.percentComplete || 0), 0) / jobs.length),
   };
 };
 
@@ -72,7 +73,8 @@ export const exportReport = async (
     const jobData = jobs.map(job => ({
       'Valve ID': job.valveId,
       'Description': job.description,
-      'Status': job.status,
+      '% Complete': job.percentComplete || 0,
+      'Job Status': getStatusFromPercent(job.percentComplete || 0),
       'Priority': job.priority,
       'Assigned To': job.assignedTo || '',
       'Notes': job.notes || '',
@@ -91,7 +93,8 @@ export const exportReport = async (
     jobsSheet['!cols'] = [
       { wch: 12 }, // Valve ID
       { wch: 30 }, // Description
-      { wch: 12 }, // Status
+      { wch: 10 }, // % Complete
+      { wch: 20 }, // Job Status
       { wch: 10 }, // Priority
       { wch: 15 }, // Assigned To
       { wch: 30 }, // Notes
@@ -107,6 +110,7 @@ export const exportReport = async (
       const stats = generateStats(jobs);
       const statsData = [
         { 'Metric': 'Total Jobs', 'Count': stats.total },
+        { 'Metric': 'Average Progress', 'Count': `${stats.averageProgress}%` },
         { 'Metric': '', 'Count': '' },
         { 'Metric': 'Status Breakdown', 'Count': '' },
         { 'Metric': 'Pending', 'Count': stats.pending },

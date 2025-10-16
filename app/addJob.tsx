@@ -23,6 +23,7 @@ export default function AddJobScreen() {
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [assignedTo, setAssignedTo] = useState('');
   const [notes, setNotes] = useState('');
+  const [percentComplete, setPercentComplete] = useState(0);
 
   const handleSave = async () => {
     if (!valveId.trim()) {
@@ -54,6 +55,7 @@ export default function AddJobScreen() {
         notes: notes.trim() || undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        percentComplete,
       };
 
       const updatedJobs = [...jobs, newJob];
@@ -70,6 +72,8 @@ export default function AddJobScreen() {
       Alert.alert('Error', 'Failed to create job');
     }
   };
+
+  const percentOptions = [0, 10, 15, 20, 30, 40, 60, 65, 70, 80, 95, 100];
 
   return (
     <>
@@ -106,24 +110,24 @@ export default function AddJobScreen() {
         </View>
 
         <View style={[commonStyles.card, styles.section]}>
-          <Text style={styles.label}>Status</Text>
-          <View style={styles.statusButtons}>
-            {(['pending', 'in-progress', 'on-hold', 'completed'] as JobStatus[]).map((s) => (
+          <Text style={styles.label}>Progress (%)</Text>
+          <View style={styles.percentButtons}>
+            {percentOptions.map((percent) => (
               <Pressable
-                key={s}
+                key={percent}
                 style={[
-                  styles.statusButton,
-                  status === s && styles.statusButtonActive,
+                  styles.percentButton,
+                  percentComplete === percent && styles.percentButtonActive,
                 ]}
-                onPress={() => setStatus(s)}
+                onPress={() => setPercentComplete(percent)}
               >
                 <Text
                   style={[
-                    styles.statusButtonText,
-                    status === s && styles.statusButtonTextActive,
+                    styles.percentButtonText,
+                    percentComplete === percent && styles.percentButtonTextActive,
                   ]}
                 >
-                  {s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ')}
+                  {percent}%
                 </Text>
               </Pressable>
             ))}
@@ -213,30 +217,32 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  statusButtons: {
+  percentButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 4,
   },
-  statusButton: {
-    paddingHorizontal: 16,
+  percentButton: {
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  statusButtonActive: {
+  percentButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  statusButtonText: {
-    fontSize: 14,
+  percentButtonText: {
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
   },
-  statusButtonTextActive: {
+  percentButtonTextActive: {
     color: '#ffffff',
   },
   priorityButtons: {

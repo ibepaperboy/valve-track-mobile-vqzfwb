@@ -43,6 +43,22 @@ export default function UploadScreen() {
       // Convert to ValveJob format
       const jobs: ValveJob[] = jsonData.map((row: any, index: number) => {
         const now = new Date();
+        
+        // Parse percentComplete from various possible column names
+        let percentComplete = 0;
+        if (row.percentComplete !== undefined) {
+          percentComplete = Number(row.percentComplete);
+        } else if (row.percent_complete !== undefined) {
+          percentComplete = Number(row.percent_complete);
+        } else if (row['Percent Complete'] !== undefined) {
+          percentComplete = Number(row['Percent Complete']);
+        } else if (row['% Complete'] !== undefined) {
+          percentComplete = Number(row['% Complete']);
+        }
+        
+        // Ensure percentComplete is between 0 and 100
+        percentComplete = Math.max(0, Math.min(100, percentComplete));
+        
         return {
           id: row.id || `imported-${Date.now()}-${index}`,
           valveId: row.valveId || row.valve_id || row['Valve ID'] || `VLV-${Date.now()}-${index}`,
@@ -56,6 +72,7 @@ export default function UploadScreen() {
           estimatedCompletion: row.estimatedCompletion || row.estimated_completion || row['Estimated Completion']
             ? new Date(row.estimatedCompletion || row.estimated_completion || row['Estimated Completion'])
             : undefined,
+          percentComplete,
         };
       });
 
@@ -182,6 +199,12 @@ export default function UploadScreen() {
               <Text style={styles.columnBullet}>•</Text>
               <Text style={styles.columnText}>
                 <Text style={styles.columnName}>description</Text> - Job description (required)
+              </Text>
+            </View>
+            <View style={styles.columnItem}>
+              <Text style={styles.columnBullet}>•</Text>
+              <Text style={styles.columnText}>
+                <Text style={styles.columnName}>percentComplete</Text> - Progress percentage (0-100)
               </Text>
             </View>
             <View style={styles.columnItem}>
