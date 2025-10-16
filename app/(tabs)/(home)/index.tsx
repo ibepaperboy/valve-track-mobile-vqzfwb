@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -78,6 +78,16 @@ export default function HomeScreen() {
         />
       )}
       <View style={[commonStyles.container, styles.container]}>
+        {/* Logo Header */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/8fa4f820-7f52-4a4c-b32e-2fe9e3a04387.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.logoText}>Valve Repair Tracker</Text>
+        </View>
+
         <View style={styles.filterContainer}>
           <ScrollView 
             horizontal 
@@ -166,6 +176,26 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 8,
+  },
+  logoContainer: {
+    backgroundColor: colors.card,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
   },
   filterContainer: {
     backgroundColor: colors.card,
